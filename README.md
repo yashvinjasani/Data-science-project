@@ -1,5 +1,7 @@
 Stock Data Extraction and Visualization
 
+WEB PAGE:  https://yashvinjasani.github.io/Data-science-project/stock_analysis_web_app.html
+
 Project Overview
 
 This project demonstrates a complete workflow for gathering and analyzing financial data. It extracts historical stock prices for Tesla (TSLA) and GameStop (GME) using the yfinance library and scrapes their revenue data from web pages using BeautifulSoup. Finally, it uses plotly to create interactive visualizations that plot the historical share price against the company's revenue.
