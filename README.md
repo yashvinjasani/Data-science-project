@@ -28,9 +28,8 @@ Installation
 To get this project running on your local machine, follow these steps:
 
 STEP 1
-Clone the repository:
-git clone [https://github.com/your-username/your-repository-name.git](https://github.com/your-username/your-repository-name.git)
-cd your-repository-name
+git clone [https://github.com/yashvin-jasani/stock-data-visualization.git](https://github.com/yashvin-jasani/stock-data-visualization.git)
+cd stock-data-visualization
 
 STEP 2
 Install the required Python libraries:
