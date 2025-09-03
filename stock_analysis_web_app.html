@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Performance vs. Revenue Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cool Slate -->
+    <!-- Application Structure Plan: The application is designed as a tabbed dashboard. This structure allows the user to focus on one company (Tesla or GameStop) at a time, providing a clean, uncluttered view. The primary interaction is switching between these tabs, which dynamically updates the chart and key metrics. This approach was chosen over a single, long-scrolling page to facilitate direct, focused analysis and make comparison intuitive. The user flow is simple: select a company, view its integrated chart (stock price + revenue), and absorb key stats. This is more engaging and user-friendly than the notebook's sequential presentation. -->
+    <!-- Visualization & Content Choices: The core of the report is comparing stock price (a time-series) with revenue (discrete quarterly data). Goal: Compare relationships. Viz/Presentation: A combined line (price) and bar (revenue) chart with dual Y-axes is the most effective method. Interaction: Users can hover for tooltips and click legends to toggle datasets. This directly visualizes the notebook's central analysis. Justification: This combined view is more insightful than separate charts. Library: Chart.js for its flexibility and canvas rendering. Key stats are presented as text for quick insights. Navigation is handled by simple tabs for clarity. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            max-height: 500px;
+        }
+        .tab-active {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .tab-inactive {
+            border-color: transparent;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="app" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        
+        <header class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Stock Performance vs. Revenue Analysis</h1>
+            <p class="mt-2 text-lg text-slate-600">An interactive look at market valuation and company fundamentals.</p>
+        </header>
+
+        <nav class="flex justify-center border-b border-slate-200 mb-8">
+            <button id="btn-tsla" class="py-3 px-6 text-lg font-medium border-b-2 transition-colors duration-200">Tesla (TSLA)</button>
+            <button id="btn-gme" class="py-3 px-6 text-lg font-medium border-b-2 transition-colors duration-200">GameStop (GME)</button>
+        </nav>
+
+        <main>
+            <div id="tesla-content">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-900">Tesla Inc. (TSLA)</h2>
+                        <p class="mt-1 text-slate-600">This section analyzes the relationship between Tesla's stock market performance and its quarterly revenue. The chart below plots the historical closing price (line) against reported revenue (bars), allowing for a comparison of market sentiment against fundamental financial performance.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="teslaChart"></canvas>
+                    </div>
+                     <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">All-Time High Stock Price</h3>
+                            <p id="tsla-high" class="text-2xl font-bold text-slate-900">$0.00</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">Latest Stock Price</h3>
+                            <p id="tsla-latest-price" class="text-2xl font-bold text-slate-900">$0.00</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">Highest Quarterly Revenue</h3>
+                            <p id="tsla-high-rev" class="text-2xl font-bold text-slate-900">$0M</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">Latest Quarterly Revenue</h3>
+                            <p id="tsla-latest-rev" class="text-2xl font-bold text-slate-900">$0M</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gamestop-content" class="hidden">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm">
+                     <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-900">GameStop Corp. (GME)</h2>
+                        <p class="mt-1 text-slate-600">This section analyzes the relationship between GameStop's stock market performance and its quarterly revenue. The chart below plots the historical closing price (line) against reported revenue (bars), highlighting periods of significant market activity versus underlying financial results.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="gamestopChart"></canvas>
+                    </div>
+                    <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">All-Time High Stock Price</h3>
+                            <p id="gme-high" class="text-2xl font-bold text-slate-900">$0.00</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">Latest Stock Price</h3>
+                            <p id="gme-latest-price" class="text-2xl font-bold text-slate-900">$0.00</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">Highest Quarterly Revenue</h3>
+                            <p id="gme-high-rev" class="text-2xl font-bold text-slate-900">$0M</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg">
+                            <h3 class="text-sm font-medium text-slate-500">Latest Quarterly Revenue</h3>
+                            <p id="gme-latest-rev" class="text-2xl font-bold text-slate-900">$0M</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="text-center mt-12 text-slate-500">
+            <p>Built by Yashvin Jasani. Data sourced from public financial records.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const teslaStockData = {
+                dates: ["2020-01-02", "2020-04-01", "2020-07-01", "2020-10-01", "2021-01-04", "2021-04-01", "2021-07-01", "2021-10-01", "2022-01-03", "2022-04-01", "2022-07-01", "2022-10-03", "2023-01-03", "2023-04-03", "2023-07-03", "2023-10-02"],
+                prices: [28.68, 52.69, 223.93, 138.8, 243.26, 222.33, 227.57, 258.41, 399.93, 361.53, 227.26, 265.25, 124.66, 199.91, 279.82, 251.6]
+            };
+            const teslaRevenueData = {
+                dates: ["2022-09-30", "2022-06-30", "2022-03-31", "2021-12-31", "2021-09-30", "2021-06-30", "2021-03-31", "2020-12-31", "2020-09-30", "2020-06-30", "2020-03-31"],
+                revenues: [21454, 16934, 18756, 17719, 13757, 11958, 10389, 10744, 8771, 6036, 5985]
+            };
+
+            const gmeStockData = {
+                dates: ["2020-01-02", "2020-04-01", "2020-07-01", "2020-10-01", "2021-01-04", "2021-04-01", "2021-07-01", "2021-10-01", "2022-01-03", "2022-04-01", "2022-07-01", "2022-10-03", "2023-01-03", "2023-04-03", "2023-07-03", "2023-10-02"],
+                prices: [6.18, 4.41, 4.39, 10.2, 17.25, 47.3, 53.47, 43.89, 38.31, 39.06, 33.36, 25.13, 18.51, 22.8, 24.3, 15.6]
+            };
+            const gmeRevenueData = {
+                dates: ["2022-09-30", "2022-06-30", "2022-03-31", "2021-12-31", "2021-09-30", "2021-06-30", "2021-03-31", "2020-12-31", "2020-09-30", "2020-06-30", "2020-03-31"],
+                revenues: [1186, 1136, 1378, 2254, 1296, 1183, 1277, 2122, 1005, 1111, 942]
+            };
+
+            const tslaContent = document.getElementById('tesla-content');
+            const gmeContent = document.getElementById('gamestop-content');
+            const btnTsla = document.getElementById('btn-tsla');
+            const btnGme = document.getElementById('btn-gme');
+            
+            let teslaChart, gamestopChart;
+
+            function createChart(ctx, stockData, revenueData, stockLabel, revenueLabel, stockColor, revenueColor) {
+                const combinedLabels = [...new Set([...stockData.dates, ...revenueData.dates])].sort();
+
+                const stockPriceMap = new Map(stockData.dates.map((d, i) => [d, stockData.prices[i]]));
+                const revenueMap = new Map(revenueData.dates.map((d, i) => [d, revenueData.revenues[i]]));
+
+                const filledStockPrices = combinedLabels.map(label => stockPriceMap.get(label) || null);
+                const filledRevenues = combinedLabels.map(label => revenueMap.get(label) || null);
+
+
+                return new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: combinedLabels,
+                        datasets: [{
+                            label: stockLabel,
+                            data: filledStockPrices,
+                            type: 'line',
+                            borderColor: stockColor,
+                            backgroundColor: stockColor + '33',
+                            yAxisID: 'y-price',
+                            tension: 0.1,
+                            spanGaps: true,
+                        }, {
+                            label: revenueLabel,
+                            data: filledRevenues,
+                            backgroundColor: revenueColor,
+                            yAxisID: 'y-revenue',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            'y-price': {
+                                type: 'linear',
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Stock Price (USD)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                }
+                            },
+                            'y-revenue': {
+                                type: 'linear',
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Revenue (Millions USD)'
+                                },
+                                grid: {
+                                    drawOnChartArea: true,
+                                }
+                            },
+                             x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            if (context.dataset.yAxisID === 'y-price') {
+                                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                            } else {
+                                                 label += '$' + context.parsed.y.toLocaleString() + 'M';
+                                            }
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function updateKeyMetrics(data, prefix) {
+                const highPrice = Math.max(...data.prices);
+                const latestPrice = data.prices[data.prices.length - 1];
+                document.getElementById(`${prefix}-high`).textContent = `$${highPrice.toFixed(2)}`;
+                document.getElementById(`${prefix}-latest-price`).textContent = `$${latestPrice.toFixed(2)}`;
+            }
+            
+             function updateRevenueMetrics(data, prefix) {
+                const highRev = Math.max(...data.revenues);
+                const latestRev = data.revenues[0]; // Assuming latest is first in sorted list
+                document.getElementById(`${prefix}-high-rev`).textContent = `$${highRev.toLocaleString()}M`;
+                document.getElementById(`${prefix}-latest-rev`).textContent = `$${latestRev.toLocaleString()}M`;
+            }
+
+
+            function switchTab(company) {
+                if (company === 'tsla') {
+                    tslaContent.classList.remove('hidden');
+                    gmeContent.classList.add('hidden');
+                    btnTsla.classList.add('tab-active');
+                    btnTsla.classList.remove('tab-inactive');
+                    btnGme.classList.add('tab-inactive');
+                    btnGme.classList.remove('tab-active');
+                } else {
+                    tslaContent.classList.add('hidden');
+                    gmeContent.classList.remove('hidden');
+                    btnGme.classList.add('tab-active');
+                    btnGme.classList.remove('tab-inactive');
+                    btnTsla.classList.add('tab-inactive');
+                    btnTsla.classList.remove('tab-active');
+                }
+            }
+            
+            btnTsla.addEventListener('click', () => switchTab('tsla'));
+            btnGme.addEventListener('click', () => switchTab('gme'));
+
+            teslaChart = createChart(document.getElementById('teslaChart').getContext('2d'), teslaStockData, teslaRevenueData, 'TSLA Stock Price', 'TSLA Revenue', '#1e40af', '#60a5fa');
+            gamestopChart = createChart(document.getElementById('gamestopChart').getContext('2d'), gmeStockData, gmeRevenueData, 'GME Stock Price', 'GME Revenue', '#7c2d12', '#fb923c');
+            
+            updateKeyMetrics(teslaStockData, 'tsla');
+            updateRevenueMetrics(teslaRevenueData, 'tsla');
+            updateKeyMetrics(gmeStockData, 'gme');
+            updateRevenueMetrics(gmeRevenueData, 'gme');
+
+
+            switchTab('tsla');
+        });
+    </script>
+
+</body>
+</html>
